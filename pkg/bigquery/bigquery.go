@@ -18,7 +18,7 @@ import (
 // Returns:
 //   - BigQueryInterface[T]: A new BigQueryInterface[T].
 //   - error: An error if one occurs.
-func New[T any](opts ...Option) (BigQueryInterface[T], error) {
+func New[T any](opts ...Option) (IBigQuery[T], error) {
 	n := &bigQuery[T]{}
 	for _, opt := range opts {
 		opt(n.cfg)

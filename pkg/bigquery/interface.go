@@ -6,7 +6,7 @@ import (
 	bq "cloud.google.com/go/bigquery"
 )
 
-type BigQueryRow map[string]bq.Value
+type Row map[string]bq.Value
 
 type bigQuery[T any] struct {
 	cfg    *Config
@@ -40,7 +40,7 @@ func WithContext(ctx context.Context) Option {
 	}
 }
 
-type BigQueryInterface[T any] interface {
+type IBigQuery[T any] interface {
 	// AppendMany appends a list of rows to a BigQuery table
 	// Parameters:
 	//   - dataSet: string [The dataset ID]
