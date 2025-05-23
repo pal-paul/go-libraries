@@ -38,12 +38,25 @@ clean:  ## go clean
 clean-all:  ## remove all generated artifacts and clean all build artifacts
 	go clean -i ./...
 
-tools:  ## fetch and install all required tools
+deps:
+	go mod tidy
+	go mod download
+
+update-deps:
+	go get -u all
+	go mod tidy
+
+tidy:
+	go get -u ./...
+	go mod tidy
 
 vet:    ## run go vet on the source files
 	go vet ./...
 
 doc:    ## generate godocs and start a local documentation webserver on port 8085
+
+lint:
+	golangci-lint run --verbose
 
 update-dependencies:    ## update golang dependencies
 	dep ensure
@@ -57,7 +70,3 @@ deploy: install build
 
 test: ## run tests
 	go test -v ./...
-
-tidy:
-	go get -u ./...
-	go mod tidy
