@@ -1,0 +1,71 @@
+version: "2"
+run:
+  modules-download-mode: readonly
+linters:
+  enable:
+    - asciicheck
+    - bodyclose
+    - contextcheck
+    - copyloopvar
+    - dupl
+    - errname
+    - exhaustive
+    - funlen
+    - gochecknoglobals
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - godox
+    - gosec
+    - lll
+    - misspell
+    - nakedret
+    - nestif
+    - nilerr
+    - noctx
+    - nolintlint
+    - prealloc
+    - revive
+    - unconvert
+    - unparam
+    - whitespace
+  settings:
+    lll:
+      line-length: 120
+    funlen:
+      lines: 120
+      statements: 80
+      ignore-comments: true
+  exclusions:
+    generated: lax
+    rules:
+      - linters:
+          - bodyclose
+          - dupl
+          - errcheck
+          - exportloopref
+          - funlen
+          - gochecknoglobals
+          - gocognit
+          - goconst
+          - gocyclo
+          - gosec
+          - lll
+          - unconvert
+        path: _test\.go$|\/testutil\/
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
