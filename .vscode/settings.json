@@ -1,10 +1,13 @@
 {
   "cSpell.words": [
+    "apiv",
     "funlen",
     "godocs",
     "golangci",
     "gomock",
     "mockgen",
+    "secretmanager",
+    "secretmanagerpb",
     "unmarshal"
   ]
 }
