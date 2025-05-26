@@ -17,32 +17,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockSecretInterface is a mock of SecretInterface interface.
-type MockSecretInterface[T any] struct {
+// MockISecret is a mock of ISecret interface.
+type MockISecret[T any] struct {
 	ctrl     *gomock.Controller
-	recorder *MockSecretInterfaceMockRecorder[T]
+	recorder *MockISecretMockRecorder[T]
 	isgomock struct{}
 }
 
-// MockSecretInterfaceMockRecorder is the mock recorder for MockSecretInterface.
-type MockSecretInterfaceMockRecorder[T any] struct {
-	mock *MockSecretInterface[T]
+// MockISecretMockRecorder is the mock recorder for MockISecret.
+type MockISecretMockRecorder[T any] struct {
+	mock *MockISecret[T]
 }
 
-// NewMockSecretInterface creates a new mock instance.
-func NewMockSecretInterface[T any](ctrl *gomock.Controller) *MockSecretInterface[T] {
-	mock := &MockSecretInterface[T]{ctrl: ctrl}
-	mock.recorder = &MockSecretInterfaceMockRecorder[T]{mock}
+// NewMockISecret creates a new mock instance.
+func NewMockISecret[T any](ctrl *gomock.Controller) *MockISecret[T] {
+	mock := &MockISecret[T]{ctrl: ctrl}
+	mock.recorder = &MockISecretMockRecorder[T]{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockSecretInterface[T]) EXPECT() *MockSecretInterfaceMockRecorder[T] {
+func (m *MockISecret[T]) EXPECT() *MockISecretMockRecorder[T] {
 	return m.recorder
 }
 
 // AddSecretVersion mocks base method.
-func (m *MockSecretInterface[T]) AddSecretVersion(secretName string, payload []byte) error {
+func (m *MockISecret[T]) AddSecretVersion(secretName string, payload []byte) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddSecretVersion", secretName, payload)
 	ret0, _ := ret[0].(error)
@@ -50,13 +50,13 @@ func (m *MockSecretInterface[T]) AddSecretVersion(secretName string, payload []b
 }
 
 // AddSecretVersion indicates an expected call of AddSecretVersion.
-func (mr *MockSecretInterfaceMockRecorder[T]) AddSecretVersion(secretName, payload any) *gomock.Call {
+func (mr *MockISecretMockRecorder[T]) AddSecretVersion(secretName, payload any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddSecretVersion", reflect.TypeOf((*MockSecretInterface[T])(nil).AddSecretVersion), secretName, payload)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddSecretVersion", reflect.TypeOf((*MockISecret[T])(nil).AddSecretVersion), secretName, payload)
 }
 
 // CreateSecret mocks base method.
-func (m *MockSecretInterface[T]) CreateSecret(secretName string) error {
+func (m *MockISecret[T]) CreateSecret(secretName string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateSecret", secretName)
 	ret0, _ := ret[0].(error)
@@ -64,13 +64,13 @@ func (m *MockSecretInterface[T]) CreateSecret(secretName string) error {
 }
 
 // CreateSecret indicates an expected call of CreateSecret.
-func (mr *MockSecretInterfaceMockRecorder[T]) CreateSecret(secretName any) *gomock.Call {
+func (mr *MockISecretMockRecorder[T]) CreateSecret(secretName any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSecret", reflect.TypeOf((*MockSecretInterface[T])(nil).CreateSecret), secretName)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSecret", reflect.TypeOf((*MockISecret[T])(nil).CreateSecret), secretName)
 }
 
 // Get mocks base method.
-func (m *MockSecretInterface[T]) Get(name string) (T, error) {
+func (m *MockISecret[T]) Get(name string) (T, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", name)
 	ret0, _ := ret[0].(T)
@@ -79,13 +79,13 @@ func (m *MockSecretInterface[T]) Get(name string) (T, error) {
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockSecretInterfaceMockRecorder[T]) Get(name any) *gomock.Call {
+func (mr *MockISecretMockRecorder[T]) Get(name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSecretInterface[T])(nil).Get), name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockISecret[T])(nil).Get), name)
 }
 
 // GetBytes mocks base method.
-func (m *MockSecretInterface[T]) GetBytes(name string) ([]byte, error) {
+func (m *MockISecret[T]) GetBytes(name string) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBytes", name)
 	ret0, _ := ret[0].([]byte)
@@ -94,13 +94,13 @@ func (m *MockSecretInterface[T]) GetBytes(name string) ([]byte, error) {
 }
 
 // GetBytes indicates an expected call of GetBytes.
-func (mr *MockSecretInterfaceMockRecorder[T]) GetBytes(name any) *gomock.Call {
+func (mr *MockISecretMockRecorder[T]) GetBytes(name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBytes", reflect.TypeOf((*MockSecretInterface[T])(nil).GetBytes), name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBytes", reflect.TypeOf((*MockISecret[T])(nil).GetBytes), name)
 }
 
 // GetSecrets mocks base method.
-func (m *MockSecretInterface[T]) GetSecrets(secretsRegexp *regexp.Regexp) ([]secret.SecretData, error) {
+func (m *MockISecret[T]) GetSecrets(secretsRegexp *regexp.Regexp) ([]secret.SecretData, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSecrets", secretsRegexp)
 	ret0, _ := ret[0].([]secret.SecretData)
@@ -109,13 +109,13 @@ func (m *MockSecretInterface[T]) GetSecrets(secretsRegexp *regexp.Regexp) ([]sec
 }
 
 // GetSecrets indicates an expected call of GetSecrets.
-func (mr *MockSecretInterfaceMockRecorder[T]) GetSecrets(secretsRegexp any) *gomock.Call {
+func (mr *MockISecretMockRecorder[T]) GetSecrets(secretsRegexp any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecrets", reflect.TypeOf((*MockSecretInterface[T])(nil).GetSecrets), secretsRegexp)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecrets", reflect.TypeOf((*MockISecret[T])(nil).GetSecrets), secretsRegexp)
 }
 
 // GetVersion mocks base method.
-func (m *MockSecretInterface[T]) GetVersion(name, version string) ([]byte, error) {
+func (m *MockISecret[T]) GetVersion(name, version string) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetVersion", name, version)
 	ret0, _ := ret[0].([]byte)
@@ -124,7 +124,7 @@ func (m *MockSecretInterface[T]) GetVersion(name, version string) ([]byte, error
 }
 
 // GetVersion indicates an expected call of GetVersion.
-func (mr *MockSecretInterfaceMockRecorder[T]) GetVersion(name, version any) *gomock.Call {
+func (mr *MockISecretMockRecorder[T]) GetVersion(name, version any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVersion", reflect.TypeOf((*MockSecretInterface[T])(nil).GetVersion), name, version)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVersion", reflect.TypeOf((*MockISecret[T])(nil).GetVersion), name, version)
 }

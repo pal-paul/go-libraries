@@ -24,10 +24,10 @@ type secret[T any] struct {
 	client *sm.Client
 }
 
-// SecretInterface defines the operations available for managing secrets in Google Cloud Secret Manager.
+// ISecret defines the operations available for managing secrets in Google Cloud Secret Manager.
 // The type parameter T determines the structure that secrets will be unmarshaled into when using
 // typed retrieval methods.
-type SecretInterface[T any] interface {
+type ISecret[T any] interface {
 	// GetBytes retrieves a secret's latest version as raw bytes.
 	// This method is useful when you need the raw secret data or when working with
 	// non-JSON secrets.

@@ -17,7 +17,7 @@ import (
 // Returns:
 //   - SecretInterface[T]: The secret client
 //   - error: An error if one occurs.
-func New[T any](opts ...Option) (SecretInterface[T], error) {
+func New[T any](opts ...Option) (ISecret[T], error) {
 	c := &secret[T]{conf: defaultConfig()}
 	for _, opt := range opts {
 		opt(c.conf)

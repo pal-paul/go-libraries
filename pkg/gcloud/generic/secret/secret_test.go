@@ -19,7 +19,7 @@ type TestSecret struct {
 	Value string `json:"value"`
 }
 
-func testClient(t *testing.T) secret.SecretInterface[TestSecret] {
+func testClient(t *testing.T) secret.ISecret[TestSecret] {
 	t.Helper()
 	client, err := secret.New[TestSecret](
 		secret.WithContext(context.Background()),
@@ -213,7 +213,7 @@ func TestSecretIntegration(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockClient := mocks.NewMockSecretInterface[TestSecret](ctrl)
+	mockClient := mocks.NewMockISecret[TestSecret](ctrl)
 	secretName := "test-secret"
 	testData := TestSecret{Value: "test-value"}
 	testBytes, err := json.Marshal(testData)
@@ -273,7 +273,7 @@ func TestSecretConcurrentOperations(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockClient := mocks.NewMockSecretInterface[TestSecret](ctrl)
+	mockClient := mocks.NewMockISecret[TestSecret](ctrl)
 	secretName := "test-concurrent-secret"
 
 	// Setup expectations
@@ -316,7 +316,7 @@ func TestSecretCleanup(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockClient := mocks.NewMockSecretInterface[TestSecret](ctrl)
+	mockClient := mocks.NewMockISecret[TestSecret](ctrl)
 
 	// Setup test data
 	secretNames := []string{
@@ -346,7 +346,7 @@ func TestSecretCleanup(t *testing.T) {
 	mockClient.EXPECT().GetSecrets(gomock.Any()).Return(secretData, nil)
 
 	// Helper function to create and populate a secret
-	createTestSecret := func(t *testing.T, client secret.SecretInterface[TestSecret], name string) {
+	createTestSecret := func(t *testing.T, client secret.ISecret[TestSecret], name string) {
 		err := client.CreateSecret(name)
 		require.NoError(t, err)
 
