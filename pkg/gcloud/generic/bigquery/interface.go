@@ -1,44 +1,10 @@
 package bigquery
 
 import (
-	"context"
-
 	bq "cloud.google.com/go/bigquery"
 )
 
 type Row map[string]bq.Value
-
-type bigQuery[T any] struct {
-	cfg    *Config
-	client *bq.Client
-}
-
-type Config struct {
-	// ProjectId is the Google Cloud Project ID
-	ProjectId string
-
-	// Context is the context to use for BigQuery operations
-	Context context.Context
-}
-type Option func(cfg *Config)
-
-func WithProjectId(projectId string) Option {
-	if projectId == "" {
-		panic("projectId is empty")
-	}
-	return func(cfg *Config) {
-		cfg.ProjectId = projectId
-	}
-}
-
-func WithContext(ctx context.Context) Option {
-	if ctx == nil {
-		panic("context is nil")
-	}
-	return func(cfg *Config) {
-		cfg.Context = ctx
-	}
-}
 
 type IBigQuery[T any] interface {
 	// AppendMany appends a list of rows to a BigQuery table
