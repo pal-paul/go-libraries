@@ -8,6 +8,7 @@
     "mockgen",
     "secretmanager",
     "secretmanagerpb",
+    "stretchr",
     "unmarshal"
   ]
 }
