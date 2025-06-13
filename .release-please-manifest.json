@@ -1,0 +1,10 @@
+{
+    "packages": {
+        "": {
+            "release-type": "go",
+            "changelog-path": "CHANGELOG.md",
+            "component": "notify-slack"
+        }
+    },
+    ".": "1.0.0"
+}
