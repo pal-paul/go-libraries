@@ -1,0 +1,10 @@
+{
+    "packages": {
+        "": {
+            "release-type": "go",
+            "changelog-path": "CHANGELOG.md",
+            "component": "go-libraries"
+        }
+    },
+    ".": "1.0.0"
+}
