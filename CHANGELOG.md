@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/pal-paul/go-libraries/compare/v1.0.0...v1.0.1) (2025-06-17)
+
+
+### Bug Fixes
+
+* slack and env package ([#9](https://github.com/pal-paul/go-libraries/issues/9)) ([46eaeee](https://github.com/pal-paul/go-libraries/commit/46eaeee82d5a9fc9b8f9b9a23652115921aeab7c))
+
 ## 1.0.0 (2025-06-13)
 
 
