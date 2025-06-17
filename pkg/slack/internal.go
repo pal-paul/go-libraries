@@ -25,15 +25,15 @@ func checkStatusCode(resp *http.Response) error {
 	return nil
 }
 
-func (m *slack) postRequest(
+func (s *slack) postRequest(
 	endpoint string,
 	headers map[string]string,
 	reqBody []byte,
 ) (resp *http.Response, err error) {
 	req, err := http.NewRequestWithContext(
-		m.cfg.Context,
+		s.cfg.Context,
 		http.MethodPost,
-		endpoint,
+		fmt.Sprintf("%s/%s", s.cfg.BaseURL, endpoint),
 		bytes.NewBuffer(reqBody),
 	)
 	if err != nil {
@@ -42,8 +42,8 @@ func (m *slack) postRequest(
 	for key, value := range headers {
 		req.Header.Set(key, value)
 	}
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", m.cfg.Token))
-	resp, err = m.httpClient.Do(req)
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.cfg.Token))
+	resp, err = s.httpClient.Do(req)
 	if err != nil {
 		return resp, err
 	}
@@ -53,21 +53,21 @@ func (m *slack) postRequest(
 	return resp, nil
 }
 
-func (m *slack) postForm(
+func (s *slack) postForm(
 	endpoint string,
 	headers map[string]string,
 	values url.Values,
 ) (resp *http.Response, err error) {
 	reqBody := strings.NewReader(values.Encode())
-	req, err := http.NewRequestWithContext(m.cfg.Context, http.MethodPost, endpoint, reqBody)
+	req, err := http.NewRequestWithContext(s.cfg.Context, http.MethodPost, fmt.Sprintf("%s/%s", s.cfg.BaseURL, endpoint), reqBody)
 	if err != nil {
 		return resp, err
 	}
 	for key, value := range headers {
 		req.Header.Set(key, value)
 	}
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", m.cfg.Token))
-	resp, err = m.httpClient.Do(req)
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.cfg.Token))
+	resp, err = s.httpClient.Do(req)
 	if err != nil {
 		return resp, err
 	}
@@ -77,21 +77,21 @@ func (m *slack) postForm(
 	return resp, nil
 }
 
-func (m *slack) getRequest(
+func (s *slack) getRequest(
 	endpoint string,
 	headers map[string]string,
 	values url.Values,
 ) (resp *http.Response, err error) {
 	reqBody := strings.NewReader(values.Encode())
-	req, err := http.NewRequestWithContext(m.cfg.Context, http.MethodGet, endpoint, reqBody)
+	req, err := http.NewRequestWithContext(s.cfg.Context, http.MethodGet, fmt.Sprintf("%s/%s", s.cfg.BaseURL, endpoint), reqBody)
 	if err != nil {
 		return resp, err
 	}
 	for key, value := range headers {
 		req.Header.Set(key, value)
 	}
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", m.cfg.Token))
-	resp, err = m.httpClient.Do(req)
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.cfg.Token))
+	resp, err = s.httpClient.Do(req)
 	if err != nil {
 		return resp, err
 	}

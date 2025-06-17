@@ -32,6 +32,13 @@ type testConfigWithCustom struct {
 	Custom customUnmarshaler `env:"TEST_CUSTOM"`
 }
 
+type testConfigWithRequiredFalse struct {
+	Optional       string `env:"TEST_OPTIONAL,required=false"`
+	OptionalWith0  string `env:"TEST_OPTIONAL_0,required=0"`
+	OptionalWithNo string `env:"TEST_OPTIONAL_NO,required=no"`
+	Required       string `env:"TEST_REQUIRED,required"`
+}
+
 func TestUnmarshal(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -86,6 +93,33 @@ func TestUnmarshal(t *testing.T) {
 			},
 			cfg: &testConfig{},
 		},
+		{
+			name: "required=false functionality",
+			envs: map[string]string{
+				"TEST_OPTIONAL":   "optional",
+				"TEST_OPTIONAL_0": "optional_with_0",
+				"TEST_REQUIRED":   "value",
+			},
+			cfg: &testConfigWithRequiredFalse{},
+		},
+		{
+			name: "required=false should not require values",
+			envs: map[string]string{
+				"TEST_REQUIRED": "value", // Only provide required field
+				// Deliberately omit TEST_OPTIONAL, TEST_OPTIONAL_0, TEST_OPTIONAL_NO
+			},
+			cfg: &testConfigWithRequiredFalse{},
+		},
+		{
+			name: "required=false with provided values",
+			envs: map[string]string{
+				"TEST_REQUIRED":    "value",
+				"TEST_OPTIONAL":    "optional_value",
+				"TEST_OPTIONAL_0":  "zero_value",
+				"TEST_OPTIONAL_NO": "no_value",
+			},
+			cfg: &testConfigWithRequiredFalse{},
+		},
 	}
 
 	for _, tt := range tests {
@@ -139,6 +173,19 @@ func TestUnmarshal(t *testing.T) {
 				case *testConfigWithCustom:
 					if tt.envs["TEST_CUSTOM"] != "" && c.Custom.value != "custom_"+tt.envs["TEST_CUSTOM"] {
 						t.Errorf("Custom = %v, want %v", c.Custom.value, "custom_"+tt.envs["TEST_CUSTOM"])
+					}
+				case *testConfigWithRequiredFalse:
+					if tt.envs["TEST_OPTIONAL"] != "" && c.Optional != tt.envs["TEST_OPTIONAL"] {
+						t.Errorf("Optional = %v, want %v", c.Optional, tt.envs["TEST_OPTIONAL"])
+					}
+					if tt.envs["TEST_OPTIONAL_0"] != "" && c.OptionalWith0 != tt.envs["TEST_OPTIONAL_0"] {
+						t.Errorf("OptionalWith0 = %v, want %v", c.OptionalWith0, tt.envs["TEST_OPTIONAL_0"])
+					}
+					if tt.envs["TEST_OPTIONAL_NO"] != "" && c.OptionalWithNo != tt.envs["TEST_OPTIONAL_NO"] {
+						t.Errorf("OptionalWithNo = %v, want %v", c.OptionalWithNo, tt.envs["TEST_OPTIONAL_NO"])
+					}
+					if c.Required != tt.envs["TEST_REQUIRED"] {
+						t.Errorf("Required = %v, want %v", c.Required, tt.envs["TEST_REQUIRED"])
 					}
 				}
 			}
@@ -246,4 +293,61 @@ func TestInvalidValues(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestRequiredFalseFeature(t *testing.T) {
+	type config struct {
+		RequiredField string `env:"REQUIRED_FIELD,required"`
+		OptionalField string `env:"OPTIONAL_FIELD,required=false"`
+	}
+
+	// Test that we can unmarshal successfully with only the required field
+	t.Run("missing optional field should not cause error", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv("REQUIRED_FIELD", "test")
+		// Deliberately do not set OPTIONAL_FIELD
+
+		es, err := envToEnvSet(os.Environ())
+		if err != nil {
+			t.Fatalf("Failed to create envSet: %v", err)
+		}
+
+		cfg := &config{}
+		err = unmarshal(es, cfg)
+		if err != nil {
+			t.Errorf("Expected no error, but got: %v", err)
+		}
+
+		if cfg.RequiredField != "test" {
+			t.Errorf("RequiredField = %v, want test", cfg.RequiredField)
+		}
+		if cfg.OptionalField != "" {
+			t.Errorf("OptionalField = %v, want empty string", cfg.OptionalField)
+		}
+	})
+
+	// Test that both fields work when provided
+	t.Run("both fields provided", func(t *testing.T) {
+		os.Clearenv()
+		os.Setenv("REQUIRED_FIELD", "test")
+		os.Setenv("OPTIONAL_FIELD", "optional")
+
+		es, err := envToEnvSet(os.Environ())
+		if err != nil {
+			t.Fatalf("Failed to create envSet: %v", err)
+		}
+
+		cfg := &config{}
+		err = unmarshal(es, cfg)
+		if err != nil {
+			t.Errorf("Expected no error, but got: %v", err)
+		}
+
+		if cfg.RequiredField != "test" {
+			t.Errorf("RequiredField = %v, want test", cfg.RequiredField)
+		}
+		if cfg.OptionalField != "optional" {
+			t.Errorf("OptionalField = %v, want optional", cfg.OptionalField)
+		}
+	})
 }

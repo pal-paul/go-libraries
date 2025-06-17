@@ -110,7 +110,7 @@ func TestAddFormattedMessage(t *testing.T) {
 			client := slack.New(
 				slack.WithToken("test-token"),
 				slack.WithContext(context.Background()),
-				slack.WithBaseURL(server.URL),
+				slack.WithBaseURL(server.URL+"/api"),
 			)
 
 			messageRef, err := client.AddFormattedMessage(tt.channel, tt.message)
@@ -159,9 +159,15 @@ func TestUploadFileWithContent(t *testing.T) {
 			wantError: false,
 		},
 		{
-			name:      "upload failure",
-			fileType:  "text",
-			fileName:  "test.txt",
+			name:     "upload failure",
+			fileType: "text",
+			fileName: "test.txt",
+			title:    "Test File",
+			content:  "Hello World",
+			msgRef: slack.MessageRef{
+				Channel:   "test-channel",
+				Timestamp: "1234567890.123456",
+			},
 			status:    http.StatusBadRequest,
 			wantError: true,
 		},
@@ -181,7 +187,7 @@ func TestUploadFileWithContent(t *testing.T) {
 			client := slack.New(
 				slack.WithToken("test-token"),
 				slack.WithContext(context.Background()),
-				slack.WithBaseURL(server.URL),
+				slack.WithBaseURL(server.URL+"/api"),
 			)
 
 			err := client.UploadFileWithContent(tt.fileType, tt.fileName, tt.title, tt.content, tt.msgRef)
