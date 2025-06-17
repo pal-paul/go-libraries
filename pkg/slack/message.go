@@ -7,14 +7,14 @@ import (
 	"net/url"
 )
 
-func (m *slack) AddFormattedMessage(
+func (s *slack) AddFormattedMessage(
 	channel string,
 	message Message,
 ) (messageRef MessageRef, err error) {
 	message.Channel = channel
 	var response SlackResponse
 
-	apiEndpoint := fmt.Sprintf("%s/chat.postMessage", baseUrl)
+	apiEndpoint := "chat.postMessage"
 	header := map[string]string{
 		"Content-Type": "application/json; charset=utf-8",
 	}
@@ -22,7 +22,7 @@ func (m *slack) AddFormattedMessage(
 	if err != nil {
 		return messageRef, err
 	}
-	resp, err := m.postRequest(apiEndpoint, header, reqBody)
+	resp, err := s.postRequest(apiEndpoint, header, reqBody)
 	if err != nil {
 		return messageRef, fmt.Errorf("error post to slack: %v", err)
 	} else {
@@ -42,7 +42,7 @@ func (m *slack) AddFormattedMessage(
 	return messageRef, nil
 }
 
-func (m *slack) AddScheduleMessage(
+func (s *slack) AddScheduleMessage(
 	channel string,
 	message Message,
 	postAt int64,
@@ -50,7 +50,7 @@ func (m *slack) AddScheduleMessage(
 	message.Channel = channel
 	var response SlackResponse
 
-	apiEndpoint := fmt.Sprintf("%s/chat.scheduleMessage", baseUrl)
+	apiEndpoint := fmt.Sprintf("%s/chat.scheduleMessage", s.cfg.BaseURL)
 	header := map[string]string{
 		"Content-Type": "application/json; charset=utf-8",
 	}
@@ -58,7 +58,7 @@ func (m *slack) AddScheduleMessage(
 	if err != nil {
 		return messageRef, err
 	}
-	resp, err := m.postRequest(apiEndpoint, header, reqBody)
+	resp, err := s.postRequest(apiEndpoint, header, reqBody)
 	if err != nil {
 		return messageRef, fmt.Errorf("error post to slack: %v", err)
 	} else {

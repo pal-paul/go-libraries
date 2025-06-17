@@ -333,7 +333,16 @@ func parseTag(tagString string) tag {
 			case "default":
 				t.Default = keyData[1]
 			case "required":
-				t.Required = true
+				// Handle required=true/false explicitly
+				switch strings.ToLower(keyData[1]) {
+				case "true", "1", "yes":
+					t.Required = true
+				case "false", "0", "no":
+					t.Required = false
+				default:
+					// For backward compatibility, any other value sets to true
+					t.Required = true
+				}
 			default:
 				// just ignoring unsupported keys
 				continue
