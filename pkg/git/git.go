@@ -273,39 +273,161 @@ type BatchFileUpdate struct {
 	Files   []FileOperation `json:"files"`
 }
 
-// CreateUpdateMultipleFiles updates or creates multiple files in a repository branch.
+// CreateUpdateMultipleFiles updates or creates multiple files in a repository branch using the Git Database API.
+// This method creates blobs for each file, creates a new tree with the changes, creates a commit,
+// and updates the branch reference to point to the new commit.
 //
 // Parameters:
 //   - batch: A BatchFileUpdate struct containing the branch name, commit message,
 //     and a list of files to be created or updated. Each file is represented by a
-//     FileOperation struct, which includes the file path, content, and optional SHA.
+//     FileOperation struct, which includes the file path and content. The Sha field
+//     is ignored for this method as it uses the Git Database API workflow.
 //
 // Returns:
 // - An error if the operation fails, or nil if the files are successfully updated.
 func (g *git) CreateUpdateMultipleFiles(batch BatchFileUpdate) error {
-	reqBody := map[string]interface{}{
-		"branch":  batch.Branch,
+	// Step 1: Get the current branch reference to get the current commit SHA
+	branchInfo, err := g.GetBranch(batch.Branch)
+	if err != nil {
+		return fmt.Errorf("failed to get branch %s: %w", batch.Branch, err)
+	}
+
+	currentCommitSha := branchInfo.Object.Sha
+
+	// Step 2: Get the current tree from the current commit
+	resp, err := g.get("repos", fmt.Sprintf("%s/%s/git/commits/%s", g.cfg.Owner, g.cfg.Repo, currentCommitSha), nil)
+	if err != nil {
+		return fmt.Errorf("failed to get current commit: %w", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("failed to get current commit: %s", resp.Status)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read commit response: %w", err)
+	}
+
+	var commitInfo CommitResponse
+	if err := json.Unmarshal(body, &commitInfo); err != nil {
+		return fmt.Errorf("failed to parse commit response: %w", err)
+	}
+
+	currentTreeSha := commitInfo.Tree.Sha
+
+	// Step 3: Create blobs for each file's content
+	var treeEntries []TreeEntry
+	for _, file := range batch.Files {
+		// Create blob for file content
+		blobReq := map[string]string{
+			"content":  file.Content,
+			"encoding": "utf-8",
+		}
+		blobReqJson, err := json.Marshal(blobReq)
+		if err != nil {
+			return fmt.Errorf("failed to marshal blob request for %s: %w", file.Path, err)
+		}
+
+		resp, err := g.post("repos", fmt.Sprintf("%s/%s/git/blobs", g.cfg.Owner, g.cfg.Repo), nil, blobReqJson)
+		if err != nil {
+			return fmt.Errorf("failed to create blob for %s: %w", file.Path, err)
+		}
+		if resp.StatusCode != 201 {
+			return fmt.Errorf("failed to create blob for %s: %s", file.Path, resp.Status)
+		}
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read blob response for %s: %w", file.Path, err)
+		}
+
+		var blobResp BlobResponse
+		if err := json.Unmarshal(body, &blobResp); err != nil {
+			return fmt.Errorf("failed to parse blob response for %s: %w", file.Path, err)
+		}
+
+		// Add tree entry for this file
+		treeEntries = append(treeEntries, TreeEntry{
+			Path: file.Path,
+			Mode: "100644", // Regular file mode
+			Type: "blob",
+			Sha:  blobResp.Sha,
+		})
+	}
+
+	// Step 4: Create a new tree with the file changes
+	treeReq := map[string]interface{}{
+		"base_tree": currentTreeSha,
+		"tree":      treeEntries,
+	}
+	treeReqJson, err := json.Marshal(treeReq)
+	if err != nil {
+		return fmt.Errorf("failed to marshal tree request: %w", err)
+	}
+
+	resp, err = g.post("repos", fmt.Sprintf("%s/%s/git/trees", g.cfg.Owner, g.cfg.Repo), nil, treeReqJson)
+	if err != nil {
+		return fmt.Errorf("failed to create tree: %w", err)
+	}
+	if resp.StatusCode != 201 {
+		return fmt.Errorf("failed to create tree: %s", resp.Status)
+	}
+
+	body, err = io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read tree response: %w", err)
+	}
+
+	var treeResp TreeResponse
+	if err := json.Unmarshal(body, &treeResp); err != nil {
+		return fmt.Errorf("failed to parse tree response: %w", err)
+	}
+
+	// Step 5: Create a commit pointing to the new tree
+	commitReq := map[string]interface{}{
 		"message": batch.Message,
-		"files":   batch.Files,
+		"tree":    treeResp.Sha,
+		"parents": []string{currentCommitSha},
 	}
-
-	reqBodyJson, err := json.Marshal(reqBody)
+	commitReqJson, err := json.Marshal(commitReq)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal commit request: %w", err)
 	}
 
-	resp, err := g.put(
-		"repos",
-		fmt.Sprintf("%s/%s/contents", g.cfg.Owner, g.cfg.Repo),
-		nil,
-		reqBodyJson,
-	)
+	resp, err = g.post("repos", fmt.Sprintf("%s/%s/git/commits", g.cfg.Owner, g.cfg.Repo), nil, commitReqJson)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create commit: %w", err)
+	}
+	if resp.StatusCode != 201 {
+		return fmt.Errorf("failed to create commit: %s", resp.Status)
 	}
 
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("failed to update files: %s", resp.Status)
+	body, err = io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read commit response: %w", err)
+	}
+
+	var newCommitResp CommitResponse
+	if err := json.Unmarshal(body, &newCommitResp); err != nil {
+		return fmt.Errorf("failed to parse commit response: %w", err)
+	}
+
+	// Step 6: Update the branch reference to point to the new commit
+	refReq := map[string]interface{}{
+		"sha":   newCommitResp.Sha,
+		"force": false, // Ensure this is a fast-forward update
+	}
+	refReqJson, err := json.Marshal(refReq)
+	if err != nil {
+		return fmt.Errorf("failed to marshal ref request: %w", err)
+	}
+
+	resp, err = g.patch("repos", fmt.Sprintf("%s/%s/git/refs/heads/%s", g.cfg.Owner, g.cfg.Repo, batch.Branch), nil, refReqJson)
+	if err != nil {
+		return fmt.Errorf("failed to update branch reference: %w", err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("failed to update branch reference: %s", resp.Status)
 	}
 
 	return nil
