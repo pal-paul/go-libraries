@@ -142,15 +142,51 @@ Creates or updates a file in the repository.
 CreateUpdateMultipleFiles(batch BatchFileUpdate) error
 ```
 
-Updates or creates multiple files in a single commit.
+Updates or creates multiple files in a single commit using GitHub's Git Database API. This method provides atomic batch file operations by creating blobs for each file, building a new tree, creating a commit, and updating the branch reference.
 
 - **Parameters**:
   - `batch`: A `BatchFileUpdate` struct containing:
     - `Branch`: Target branch name
-    - `Message`: Commit message
-    - `Files`: Array of `FileOperation` structs
+    - `Message`: Commit message for the batch update
+    - `Files`: Array of `FileOperation` structs with:
+      - `Path`: File path within the repository
+      - `Content`: File content as a string
+      - `Sha`: (Ignored - not used in this Git Database API implementation)
+
 - **Returns**:
-  - `error`: Any error that occurred during the operation.
+  - `error`: Any error that occurred during the operation
+
+**Important Notes**:
+
+- This method uses GitHub's Git Database API for true batch operations
+- All files are created/updated in a single atomic commit
+- The operation follows Git's object model: create blobs → create tree → create commit → update reference
+- If any step fails, the entire operation is rolled back
+- The branch must exist before calling this method
+
+**Example**:
+
+```go
+batch := git.BatchFileUpdate{
+    Branch:  "feature-branch",
+    Message: "Add multiple configuration files",
+    Files: []git.FileOperation{
+        {
+            Path:    "config/app.yaml",
+            Content: "app:\n  name: myapp\n  version: 1.0",
+        },
+        {
+            Path:    "config/database.yaml", 
+            Content: "database:\n  host: localhost\n  port: 5432",
+        },
+    },
+}
+
+err := client.CreateUpdateMultipleFiles(batch)
+if err != nil {
+    log.Fatal(err)
+}
+```
 
 ### Pull Request Operations
 

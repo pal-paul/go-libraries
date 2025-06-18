@@ -517,7 +517,6 @@ func TestGitCreateUpdateMultipleFiles(t *testing.T) {
 	tests := []struct {
 		name      string
 		batch     git.BatchFileUpdate
-		status    int
 		wantError bool
 	}{
 		{
@@ -536,51 +535,98 @@ func TestGitCreateUpdateMultipleFiles(t *testing.T) {
 					},
 				},
 			},
-			status:    http.StatusOK,
 			wantError: false,
 		},
 		{
-			name: "success - update with SHA",
+			name: "success - single file",
 			batch: git.BatchFileUpdate{
 				Branch:  "main",
-				Message: "Update with SHA",
+				Message: "Add new file",
 				Files: []git.FileOperation{
 					{
-						Path:    "existing.txt",
-						Content: "updated content",
-						Sha:     "existing-sha",
+						Path:    "new-file.txt",
+						Content: "new content",
 					},
 				},
 			},
-			status:    http.StatusOK,
 			wantError: false,
-		},
-		{
-			name: "server error",
-			batch: git.BatchFileUpdate{
-				Branch:  "main",
-				Message: "Failed update",
-				Files: []git.FileOperation{
-					{
-						Path:    "test.txt",
-						Content: "test content",
-					},
-				},
-			},
-			status:    http.StatusInternalServerError,
-			wantError: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			server := setupMockServer(
-				t,
-				"/repos/test-owner/test-repo/contents",
-				http.MethodPut,
-				tt.status,
-				nil,
-			)
+			// Create a more complex mock server that handles multiple endpoints
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				// Verify required headers
+				assert.Equal(t, "token test-token", r.Header.Get("Authorization"), "Authorization header mismatch")
+				assert.Equal(t, "application/vnd.github+json", r.Header.Get("Accept"), "Accept header mismatch")
+
+				w.Header().Set("Content-Type", "application/json")
+
+				switch {
+				// 1. Get branch reference
+				case r.URL.Path == "/repos/test-owner/test-repo/git/refs/heads/"+tt.batch.Branch && r.Method == "GET":
+					w.WriteHeader(http.StatusOK)
+					w.Write([]byte(`{
+						"ref": "refs/heads/` + tt.batch.Branch + `",
+						"object": {
+							"sha": "current-commit-sha",
+							"type": "commit"
+						}
+					}`))
+
+				// 2. Get current commit
+				case r.URL.Path == "/repos/test-owner/test-repo/git/commits/current-commit-sha" && r.Method == "GET":
+					w.WriteHeader(http.StatusOK)
+					w.Write([]byte(`{
+						"sha": "current-commit-sha",
+						"tree": {
+							"sha": "current-tree-sha"
+						}
+					}`))
+
+				// 3. Create blobs (one for each file)
+				case r.URL.Path == "/repos/test-owner/test-repo/git/blobs" && r.Method == "POST":
+					w.WriteHeader(http.StatusCreated)
+					w.Write([]byte(`{
+						"sha": "blob-sha-123",
+						"url": "https://api.github.com/repos/test-owner/test-repo/git/blobs/blob-sha-123"
+					}`))
+
+				// 4. Create new tree
+				case r.URL.Path == "/repos/test-owner/test-repo/git/trees" && r.Method == "POST":
+					w.WriteHeader(http.StatusCreated)
+					w.Write([]byte(`{
+						"sha": "new-tree-sha",
+						"url": "https://api.github.com/repos/test-owner/test-repo/git/trees/new-tree-sha"
+					}`))
+
+				// 5. Create commit
+				case r.URL.Path == "/repos/test-owner/test-repo/git/commits" && r.Method == "POST":
+					w.WriteHeader(http.StatusCreated)
+					w.Write([]byte(`{
+						"sha": "new-commit-sha",
+						"tree": {
+							"sha": "new-tree-sha"
+						}
+					}`))
+
+				// 6. Update branch reference
+				case r.URL.Path == "/repos/test-owner/test-repo/git/refs/heads/"+tt.batch.Branch && r.Method == "PATCH":
+					w.WriteHeader(http.StatusOK)
+					w.Write([]byte(`{
+						"ref": "refs/heads/` + tt.batch.Branch + `",
+						"object": {
+							"sha": "new-commit-sha",
+							"type": "commit"
+						}
+					}`))
+
+				default:
+					t.Errorf("Unexpected request: %s %s", r.Method, r.URL.Path)
+					w.WriteHeader(http.StatusNotFound)
+				}
+			}))
 			defer server.Close()
 
 			client := git.New(

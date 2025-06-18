@@ -116,3 +116,37 @@ func (g *git) put(basePath string, path string, qs url.Values, reqBody []byte) (
 	}
 	return resp, nil
 }
+
+func (g *git) patch(basePath string, path string, qs url.Values, reqBody []byte) (*http.Response, error) {
+	uStr := g.cfg.BaseURL
+	if uStr == "" {
+		uStr = baseUrl
+	}
+	if len(basePath) > 0 {
+		uStr = uStr + "/" + basePath
+	}
+	if len(path) > 0 {
+		uStr = uStr + "/" + path
+	}
+	u, err := url.Parse(uStr)
+	if err != nil {
+		err = fmt.Errorf("failed to url parse %s: %v", uStr, err)
+		return nil, err
+	}
+	if qs != nil {
+		u.RawQuery = qs.Encode()
+	}
+	client := &http.Client{}
+	uStr = u.String()
+	req, err := http.NewRequest(http.MethodPatch, uStr, bytes.NewBuffer(reqBody))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Accept", accept)
+	req.Header.Set("Authorization", "token "+g.cfg.Token)
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}

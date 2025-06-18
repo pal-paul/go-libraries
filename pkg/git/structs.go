@@ -87,3 +87,60 @@ type FileResponse struct {
 type PullResponse struct {
 	Number int `json:"number"`
 }
+
+// Git Database API structs for batch file operations
+
+type BlobResponse struct {
+	Sha string `json:"sha"`
+	URL string `json:"url"`
+}
+
+type TreeEntry struct {
+	Path string `json:"path"`
+	Mode string `json:"mode"`
+	Type string `json:"type"`
+	Sha  string `json:"sha"`
+}
+
+type TreeResponse struct {
+	Sha       string      `json:"sha"`
+	URL       string      `json:"url"`
+	Tree      []TreeEntry `json:"tree"`
+	Truncated bool        `json:"truncated"`
+}
+
+type CommitResponse struct {
+	Sha    string `json:"sha"`
+	NodeID string `json:"node_id"`
+	URL    string `json:"url"`
+	Author struct {
+		Name  string    `json:"name"`
+		Email string    `json:"email"`
+		Date  time.Time `json:"date"`
+	} `json:"author"`
+	Committer struct {
+		Name  string    `json:"name"`
+		Email string    `json:"email"`
+		Date  time.Time `json:"date"`
+	} `json:"committer"`
+	Message string `json:"message"`
+	Tree    struct {
+		Sha string `json:"sha"`
+		URL string `json:"url"`
+	} `json:"tree"`
+	Parents []struct {
+		Sha string `json:"sha"`
+		URL string `json:"url"`
+	} `json:"parents"`
+}
+
+type RefResponse struct {
+	Ref    string `json:"ref"`
+	NodeID string `json:"node_id"`
+	URL    string `json:"url"`
+	Object struct {
+		Type string `json:"type"`
+		Sha  string `json:"sha"`
+		URL  string `json:"url"`
+	} `json:"object"`
+}
