@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/pal-paul/go-libraries/compare/v1.0.1...v1.0.2) (2025-06-18)
+
+
+### Bug Fixes
+
+* multiple file git commit ([#11](https://github.com/pal-paul/go-libraries/issues/11)) ([b99d102](https://github.com/pal-paul/go-libraries/commit/b99d102e85a9cc452ccadec717e4fad2fc1420fc))
+
 ## [1.0.1](https://github.com/pal-paul/go-libraries/compare/v1.0.0...v1.0.1) (2025-06-17)
 
 
