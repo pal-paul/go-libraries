@@ -70,3 +70,40 @@ deploy: install build
 
 test: ## run tests
 	go test -v ./...
+
+# HTTP Server targets
+test-http-server: ## run HTTP server tests
+	go test -v ./pkg/http-server
+
+benchmark-http-server: ## run HTTP server benchmarks
+	go test -bench=. -benchmem ./pkg/http-server
+
+run-http-server-example: ## run the HTTP server example
+	go run examples/http-server/main.go
+
+run-benchmark: ## run the performance benchmark tool (requires server to be running)
+	cd examples/benchmark && go run main.go
+
+build-examples: ## build all examples
+	cd examples/http-server && go build -o http-server main.go
+	cd examples/benchmark && go build -o benchmark main.go
+	cd examples/comparison && go build servers.go && go build compare.go
+
+# Performance comparison targets
+run-server-comparison: ## run comprehensive HTTP server performance comparison
+	cd examples/comparison && ./run_comparison.sh
+
+run-server-comparison-keep: ## run comparison and keep servers running for manual testing
+	cd examples/comparison && ./run_comparison.sh --keep-running
+
+start-fasthttp-server: ## start only our FastHTTPServer on port 8080
+	cd examples/comparison && go run servers.go fasthttp-server
+
+start-chi-server: ## start only Go-Chi server on port 8081
+	cd examples/comparison && go run servers.go chi
+
+start-std-server: ## start only Standard HTTP server on port 8082
+	cd examples/comparison && go run servers.go std
+
+start-fasthttp-lib-server: ## start only Fasthttp library server on port 8083
+	cd examples/comparison && go run servers.go fasthttp

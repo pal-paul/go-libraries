@@ -1,0 +1,30 @@
+{
+  "results": [
+    {
+      "server": "http-ultra",
+      "requests_per_sec": 10786.725394058225,
+      "avg_latency_ms": 4.357457,
+      "p95_latency_ms": 8.56975,
+      "success_rate": 100
+    },
+    {
+      "server": "go-chi",
+      "requests_per_sec": 9893.194751307987,
+      "avg_latency_ms": 4.804144,
+      "p95_latency_ms": 10.346458,
+      "success_rate": 100
+    },
+    {
+      "server": "fasthttp",
+      "requests_per_sec": 10555.301202116867,
+      "avg_latency_ms": 4.549772,
+      "p95_latency_ms": 9.355583,
+      "success_rate": 100
+    }
+  ],
+  "timestamp": "2025-08-07T15:21:54.367594+02:00",
+  "config": {
+    "requests": 1000,
+    "concurrency": 50
+  }
+}
